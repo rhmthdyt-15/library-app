@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class borrowings extends Model
+class Borrowings extends Model
 {
     protected $fillable = [
         'user_id',
@@ -14,7 +14,13 @@ class borrowings extends Model
         'due_date',
         'return_date',
         'status',
-        'notes',
+        'notes'
+    ];
+
+    protected $casts = [
+        'borrow_date' => 'date',
+        'due_date' => 'date',
+        'return_date' => 'date'
     ];
 
     public function user()

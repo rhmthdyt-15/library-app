@@ -1,16 +1,13 @@
 <?php
-
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-     use HasApiTokens, Notifiable;
+    use HasApiTokens, Notifiable;
 
     protected $fillable = [
         'name',
@@ -18,7 +15,7 @@ class User extends Authenticatable
         'password',
         'role',
         'phone_number',
-        'address',
+        'address'
     ];
 
     protected $hidden = [
@@ -28,6 +25,16 @@ class User extends Authenticatable
 
     public function borrowings()
     {
-        return $this->hasMany(borrowings::class);
+        return $this->hasMany(Borrowings::class);
+    }
+
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isMember()
+    {
+        return $this->role === 'member';
     }
 }
