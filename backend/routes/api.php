@@ -2,6 +2,10 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\BorrowingController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -16,29 +20,53 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
-Route::get('/test', function () {
-    return response()->json(['message' => 'Laravel Octane is running!']);
-});
-
-Route::post('register', [AuthController::class, 'register']);
-Route::post('login', [AuthController::class, 'login']);
+Route::post('/auth/register', [AuthController::class, 'register']);
+Route::post('/auth/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::get('/profile', [AuthController::class, 'profile']);
+    Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::put('/change-password', [AuthController::class, 'changePassword']);
 
     Route::get('/books', [BookController::class, 'index']);
     Route::get('/books/{book}', [BookController::class, 'show']);
 
-    Route::middleware(['role:admin'])->group(function () {
-        // Book management
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/categories/{category}', [CategoryController::class, 'show']);
+
+    // Admin-only routes
+    Route::middleware('admin')->group(function() {
+         // Book management (admin only)
         Route::post('/books', [BookController::class, 'store']);
         Route::put('/books/{book}', [BookController::class, 'update']);
         Route::delete('/books/{book}', [BookController::class, 'destroy']);
 
+        Route::post('/categories', [CategoryController::class, 'store']);
+        Route::put('/categories/{category}', [CategoryController::class, 'update']);
+        Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
+
+         // Borrowing management (admin features)
+        Route::post('/borrowings/{borrowings}/return', [BorrowingController::class, 'returnBook']);
+        Route::get('/check-overdue', [BorrowingController::class, 'checkOverdue']);
+
+         // Reports
+        Route::get('/reports/dashboard', [ReportController::class, 'dashboard']);
+        Route::get('/reports/borrowings', [ReportController::class, 'borrowingReport']);
+        Route::get('/reports/users', [ReportController::class, 'userReport']);
+        Route::get('/reports/books', [ReportController::class, 'bookReport']);
+
+        //user
+        Route::get('/users', [UserController::class, 'index']);
+        Route::post('/users', [UserController::class, 'store']);
+        Route::get('/users/{user}', [UserController::class, 'show']);
+        Route::put('/users/{user}', [UserController::class, 'update']);
+        Route::delete('/users/{user}', [UserController::class, 'destroy']);
     });
 
+    // Borrowing routes (some available to all users)
+    Route::get('/borrowings', [BorrowingController::class, 'index']);
+    Route::post('/borrowings', [BorrowingController::class, 'store']);
+    Route::get('/borrowings/{borrowings}', [BorrowingController::class, 'show']);
+    Route::put('/borrowings/{borrowings}/extend', [BorrowingController::class, 'extend']);
 });

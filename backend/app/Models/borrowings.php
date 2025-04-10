@@ -7,20 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class Borrowings extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'user_id',
-        'book_id',
-        'borrow_date',
-        'due_date',
-        'return_date',
-        'status',
-        'notes'
+        'user_id', 'book_id', 'borrow_date', 'due_date',
+        'return_date', 'status', 'notes'
     ];
 
     protected $casts = [
         'borrow_date' => 'date',
         'due_date' => 'date',
-        'return_date' => 'date'
+        'return_date' => 'date',
     ];
 
     public function user()
@@ -30,6 +27,6 @@ class Borrowings extends Model
 
     public function book()
     {
-        return $this->belongsTo(Book::class);
+        return $this->belongsTo(Books::class);
     }
 }

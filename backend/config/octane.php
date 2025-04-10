@@ -1,5 +1,6 @@
 <?php
 
+use App\Listeners\FlushLogAfterRequestHandled;
 use Laravel\Octane\Contracts\OperationTerminated;
 use Laravel\Octane\Events\RequestHandled;
 use Laravel\Octane\Events\RequestReceived;
@@ -77,7 +78,7 @@ return [
         ],
 
         RequestHandled::class => [
-            //
+           //
         ],
 
         RequestTerminated::class => [
@@ -90,7 +91,7 @@ return [
         ],
 
         TaskTerminated::class => [
-            //
+            FlushLogAfterRequestHandled::class,
         ],
 
         TickReceived::class => [
@@ -135,7 +136,7 @@ return [
     ],
 
     'flush' => [
-        //
+        \Illuminate\Log\LogManager::class
     ],
 
     /*

@@ -50,6 +50,10 @@ return [
     |
     */
 
+    'objects' => [
+        'log',
+    ],
+
     'channels' => [
         'stack' => [
             'driver' => 'stack',

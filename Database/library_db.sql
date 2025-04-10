@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: mysql
--- Generation Time: Feb 09, 2025 at 11:12 AM
--- Server version: 8.0.40
--- PHP Version: 8.2.27
+-- Waktu pembuatan: 10 Apr 2025 pada 11.00
+-- Versi server: 8.0.40
+-- Versi PHP: 8.2.27
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,18 +24,20 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `books`
+-- Struktur dari tabel `books`
 --
 
 CREATE TABLE `books` (
   `id` bigint UNSIGNED NOT NULL,
   `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `author` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `author` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `category_id` bigint UNSIGNED NOT NULL,
   `isbn` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` text COLLATE utf8mb4_unicode_ci,
-  `category` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cover_image` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `stock` int NOT NULL,
-  `rack_location` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `publication_year` year NOT NULL,
+  `publisher` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -43,7 +45,7 @@ CREATE TABLE `books` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `borrowings`
+-- Struktur dari tabel `borrowings`
 --
 
 CREATE TABLE `borrowings` (
@@ -53,7 +55,7 @@ CREATE TABLE `borrowings` (
   `borrow_date` date NOT NULL,
   `due_date` date NOT NULL,
   `return_date` date DEFAULT NULL,
-  `status` enum('borrowed','returned','overdue') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` enum('dipinjam','dikembalikan','terlambat') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'dipinjam',
   `notes` text COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
@@ -62,7 +64,21 @@ CREATE TABLE `borrowings` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `failed_jobs`
+-- Struktur dari tabel `categories`
+--
+
+CREATE TABLE `categories` (
+  `id` bigint UNSIGNED NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `failed_jobs`
 --
 
 CREATE TABLE `failed_jobs` (
@@ -78,7 +94,7 @@ CREATE TABLE `failed_jobs` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `migrations`
+-- Struktur dari tabel `migrations`
 --
 
 CREATE TABLE `migrations` (
@@ -90,7 +106,7 @@ CREATE TABLE `migrations` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `password_reset_tokens`
+-- Struktur dari tabel `password_reset_tokens`
 --
 
 CREATE TABLE `password_reset_tokens` (
@@ -102,7 +118,7 @@ CREATE TABLE `password_reset_tokens` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `personal_access_tokens`
+-- Struktur dari tabel `personal_access_tokens`
 --
 
 CREATE TABLE `personal_access_tokens` (
@@ -121,7 +137,7 @@ CREATE TABLE `personal_access_tokens` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `users`
+-- Struktur dari tabel `users`
 --
 
 CREATE TABLE `users` (
@@ -129,9 +145,10 @@ CREATE TABLE `users` (
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `role` enum('admin','member') COLLATE utf8mb4_unicode_ci DEFAULT 'member',
+  `role` enum('admin','anggota') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'anggota',
   `phone_number` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `address` text COLLATE utf8mb4_unicode_ci,
+  `email_verified_at` timestamp NULL DEFAULT NULL,
   `remember_token` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
@@ -142,14 +159,15 @@ CREATE TABLE `users` (
 --
 
 --
--- Indexes for table `books`
+-- Indeks untuk tabel `books`
 --
 ALTER TABLE `books`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `books_isbn_unique` (`isbn`);
+  ADD UNIQUE KEY `books_isbn_unique` (`isbn`),
+  ADD KEY `books_category_id_foreign` (`category_id`);
 
 --
--- Indexes for table `borrowings`
+-- Indeks untuk tabel `borrowings`
 --
 ALTER TABLE `borrowings`
   ADD PRIMARY KEY (`id`),
@@ -157,26 +175,32 @@ ALTER TABLE `borrowings`
   ADD KEY `borrowings_book_id_foreign` (`book_id`);
 
 --
--- Indexes for table `failed_jobs`
+-- Indeks untuk tabel `categories`
+--
+ALTER TABLE `categories`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `failed_jobs`
 --
 ALTER TABLE `failed_jobs`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`);
 
 --
--- Indexes for table `migrations`
+-- Indeks untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `password_reset_tokens`
+-- Indeks untuk tabel `password_reset_tokens`
 --
 ALTER TABLE `password_reset_tokens`
   ADD PRIMARY KEY (`email`);
 
 --
--- Indexes for table `personal_access_tokens`
+-- Indeks untuk tabel `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
   ADD PRIMARY KEY (`id`),
@@ -184,62 +208,74 @@ ALTER TABLE `personal_access_tokens`
   ADD KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`);
 
 --
--- Indexes for table `users`
+-- Indeks untuk tabel `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `users_email_unique` (`email`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT untuk tabel yang dibuang
 --
 
 --
--- AUTO_INCREMENT for table `books`
+-- AUTO_INCREMENT untuk tabel `books`
 --
 ALTER TABLE `books`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `borrowings`
+-- AUTO_INCREMENT untuk tabel `borrowings`
 --
 ALTER TABLE `borrowings`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `failed_jobs`
+-- AUTO_INCREMENT untuk tabel `categories`
+--
+ALTER TABLE `categories`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT untuk tabel `failed_jobs`
 --
 ALTER TABLE `failed_jobs`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `migrations`
+-- AUTO_INCREMENT untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
   MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `personal_access_tokens`
+-- AUTO_INCREMENT untuk tabel `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `users`
+-- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- Constraints for dumped tables
+-- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
 --
 
 --
--- Constraints for table `borrowings`
+-- Ketidakleluasaan untuk tabel `books`
+--
+ALTER TABLE `books`
+  ADD CONSTRAINT `books_category_id_foreign` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`);
+
+--
+-- Ketidakleluasaan untuk tabel `borrowings`
 --
 ALTER TABLE `borrowings`
-  ADD CONSTRAINT `borrowings_book_id_foreign` FOREIGN KEY (`book_id`) REFERENCES `books` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `borrowings_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `borrowings_book_id_foreign` FOREIGN KEY (`book_id`) REFERENCES `books` (`id`),
+  ADD CONSTRAINT `borrowings_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
