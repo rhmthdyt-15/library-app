@@ -66,8 +66,8 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
-        if ($user->role !== 'anggota') {
-            return response()->json(['message' => 'User bukan anggota'], 403);
+        if ($user->role !== 'member') {
+            return response()->json(['message' => 'User bukan member'], 403);
         }
 
         $data = $request->validate([
@@ -90,11 +90,11 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        if ($user->role !== 'anggota') {
-            return response()->json(['message' => 'User bukan anggota'], 403);
+        if ($user->role !== 'member') {
+            return response()->json(['message' => 'User bukan member'], 403);
         }
 
         $user->delete();
-        return response()->json(['message' => 'Anggota berhasil dihapus']);
+        return response()->json(['message' => 'member berhasil dihapus']);
     }
 }

@@ -23,7 +23,7 @@ class ReportController extends Controller
         $stats = [
             'total_books' => Books::count(),
             'available_books' => Books::where('stock', '>', 0)->count(),
-            'total_users' => User::where('role', 'anggota')->count(),
+            'total_users' => User::where('role', 'member')->count(),
             'active_borrowings' => Borrowings::whereIn('status', ['dipinjam', 'terlambat'])->count(),
             'overdue_borrowings' => Borrowings::where('status', 'terlambat')->count(),
             'borrowings_today' => Borrowings::where('borrow_date', $today)->count(),
@@ -88,7 +88,7 @@ class ReportController extends Controller
             'format' => 'nullable|in:json,csv,pdf',
         ]);
 
-        $query = User::where('role', 'anggota')
+        $query = User::where('role', 'member')
             ->withCount(['borrowings',
                 'borrowings as active_borrowings_count' => function ($query) {
                     $query->whereIn('status', ['dipinjam', 'terlambat']);

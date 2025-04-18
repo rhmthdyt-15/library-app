@@ -11,7 +11,7 @@ class CategoryController extends Controller
 {
     use HttpThrowExceptionTrait;
 
-      public function index()
+    public function index()
     {
         $categories = Categories::all();
         return response()->json($categories);

@@ -33,7 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/books/{book}', [BookController::class, 'show']);
 
     Route::get('/categories', [CategoryController::class, 'index']);
-    Route::get('/categories/{category}', [CategoryController::class, 'show']);
+    Route::get('/categories/{categories}', [CategoryController::class, 'show']);
 
     // Admin-only routes
     Route::middleware('admin')->group(function() {
@@ -43,11 +43,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/books/{book}', [BookController::class, 'destroy']);
 
         Route::post('/categories', [CategoryController::class, 'store']);
-        Route::put('/categories/{category}', [CategoryController::class, 'update']);
-        Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
+        Route::put('/categories/{categories}', [CategoryController::class, 'update']);
+        Route::delete('/categories/{categories}', [CategoryController::class, 'destroy']);
 
-         // Borrowing management (admin features)
+        // Borrowing management (admin features)
         Route::post('/borrowings/{borrowings}/return', [BorrowingController::class, 'returnBook']);
+        Route::post('/borrowings-with-admin', [BorrowingController::class, 'createBorrowingWithAdmin']);
         Route::get('/check-overdue', [BorrowingController::class, 'checkOverdue']);
 
          // Reports
@@ -69,4 +70,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/borrowings', [BorrowingController::class, 'store']);
     Route::get('/borrowings/{borrowings}', [BorrowingController::class, 'show']);
     Route::put('/borrowings/{borrowings}/extend', [BorrowingController::class, 'extend']);
+
+    // Dashboard Member
+    Route::get('/dashboard/summary', [BorrowingController::class, 'memberDashboardSummary']);
+    Route::get('/dashboard/current-borrowings', [BorrowingController::class, 'currentBorrowings']);
+    Route::get('/dashboard/recommendations', [BookController::class, 'recommendations']);
+
 });

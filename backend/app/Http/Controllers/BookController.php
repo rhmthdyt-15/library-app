@@ -6,6 +6,7 @@ use App\Exceptions\HttpThrowExceptionTrait;
 use App\Http\Controllers\Controller;
 use App\Models\Books;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class BookController extends Controller
@@ -54,6 +55,7 @@ class BookController extends Controller
 
         if ($request->hasFile('cover_image')) {
             $path = $request->file('cover_image')->store('covers', 'public');
+            Log::info('Path upload: ' . $path);
             $bookData['cover_image'] = $path;
         }
 
@@ -127,4 +129,19 @@ class BookController extends Controller
             'message' => 'Book deleted successfully'
         ]);
     }
+
+    public function recommendations()
+    {
+        $books = Books::inRandomOrder()->take(3)->get();
+
+        return response()->json($books->map(function($book) {
+        return [
+            'title' => $book->title,
+            'author' => $book->author,
+            'cover_image' => $book->cover_image,
+        ];
+    }));
+
+}
+
 }

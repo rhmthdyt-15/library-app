@@ -30,7 +30,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'phone_number' => $request->phone_number,
             'address' => $request->address,
-            'role' => 'anggota', // Default role
+            'role' => 'member', // Default role
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -60,6 +60,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login successful',
+            'user' => $user,
             'token' => $token
         ]);
     }

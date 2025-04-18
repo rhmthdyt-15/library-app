@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\DB;
 class BorrowingController extends Controller
 {
     use HttpThrowExceptionTrait;
-
     public function index(Request $request)
     {
         $query = Borrowings::with(['user', 'book']);
@@ -28,9 +27,19 @@ class BorrowingController extends Controller
             $query->where('user_id', $request->user_id);
         }
 
-        // For anggota, only show their own borrowingss
-        if ($request->user()->role === 'anggota') {
+        // For member, only show their own borrowingss
+        if ($request->user()->role === 'member') {
             $query->where('user_id', $request->user()->id);
+        }
+
+        // Tambahkan pencarian berdasarkan nama pengguna atau judul buku
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->whereHas('user', function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%');
+            })->orWhereHas('book', function($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%');
+            });
         }
 
         // Pagination
@@ -144,7 +153,7 @@ class BorrowingController extends Controller
         ]);
 
         // Check if the user owns this borrowings
-        if (auth()->user()->role === 'anggota' && $borrowings->user_id !== auth()->id()) {
+        if (auth()->user()->role === 'member' && $borrowings->user_id !== auth()->id()) {
             return response()->json([
                 'message' => 'Unauthorized access'
             ], 403);
@@ -224,4 +233,113 @@ class BorrowingController extends Controller
             'borrowings' => $borrowings
         ]);
     }
+
+    public function createBorrowingWithAdmin(Request $request)
+    {
+        // Pastikan hanya admin yang bisa mengakses method ini
+        if (auth()->user()->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized. Only admin can create borrowings for members.'
+            ], 403);
+        }
+
+        // Validasi input
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'isbn' => 'required|exists:books,isbn',
+            'borrow_date' => 'required|date|after_or_equal:today',
+            'due_date' => 'required|date|after:borrow_date',
+            'notes' => 'nullable|string',
+        ]);
+
+        // Cari user berdasarkan email
+        $user = \App\Models\User::where('email', $request->email)->first();
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not found with the provided email'
+            ], 404);
+        }
+
+        // Cari buku berdasarkan ISBN
+        $book = Books::where('isbn', $request->isbn)->first();
+        if (!$book) {
+            return response()->json([
+                'message' => 'Book not found with the provided ISBN'
+            ], 404);
+        }
+
+        // Periksa ketersediaan buku
+        if ($book->stock <= 0) {
+            return response()->json([
+                'message' => 'Book is not available for borrowing'
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Buat record peminjaman
+            $borrowing = Borrowings::create([
+                'user_id' => $user->id,
+                'book_id' => $book->id,
+                'borrow_date' => $request->borrow_date,
+                'due_date' => $request->due_date,
+                'status' => 'dipinjam',
+                'notes' => $request->notes,
+            ]);
+
+            // Kurangi stok buku
+            $book->decrement('stock');
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Borrowing created successfully',
+                'borrowing' => $borrowing->load(['user', 'book'])
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Failed to create borrowing',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function memberDashboardSummary(Request $request)
+    {
+        $user = $request->user();
+
+        $borrowed = $user->borrowings()->whereNull('return_date')->count();
+        $overdueSoon = $user->borrowings()
+            ->whereNull('return_date')
+            ->whereBetween('due_date', [now(), now()->addWeek()])
+            ->count();
+        $total = $user->borrowings()->count();
+
+        return response()->json([
+            'borrowed_count' => $borrowed,
+            'overdue_soon' => $overdueSoon,
+            'total_history' => $total,
+        ]);
+    }
+
+    public function currentBorrowings(Request $request)
+    {
+        $user = $request->user();
+        $borrowings = $user->borrowings()
+            ->whereNull('return_date')
+            ->with('book')
+            ->get();
+
+        return response()->json($borrowings->map(function($b) {
+            return [
+                'title' => $b->book->title,
+                'borrowed_at' => optional($b->borrow_date)->toDateString(),
+                'due_date' => optional($b->due_date)->toDateString(),
+            ];
+        }));
+
+    }
+
+
 }
