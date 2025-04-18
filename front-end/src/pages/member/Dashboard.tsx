@@ -30,8 +30,8 @@ const MemberDashboard = () => {
       ])
         .then(([summaryRes, borrowingsRes, recommendationsRes]) => {
           setSummary(summaryRes);
-          setBorrowedBooks(borrowingsRes);
-          setRecommendations(recommendationsRes);
+          setBorrowedBooks(borrowingsRes || []);
+          setRecommendations(recommendationsRes || []);
         })
         .catch((err) => console.error("Dashboard error:", err))
         .finally(() => setLoading(false));
@@ -93,8 +93,11 @@ const MemberDashboard = () => {
           <div className="bg-gray-50 rounded-lg shadow">
             <ul className="divide-y divide-gray-200">
               {borrowedBooks.length > 0 ? (
-                borrowedBooks.map((book) => (
-                  <li key={book.id} className="p-4 flex justify-between">
+                borrowedBooks.map((book, index) => (
+                  <li
+                    key={`borrowed-${index}`}
+                    className="p-4 flex justify-between"
+                  >
                     <div>
                       <p className="font-semibold text-gray-800">
                         {book.title}
@@ -106,9 +109,6 @@ const MemberDashboard = () => {
                         Jatuh tempo: {book.due_date}
                       </p>
                     </div>
-                    <button className="bg-primary text-white px-4 py-2 rounded text-sm hover:bg-primary-light">
-                      Perpanjang
-                    </button>
                   </li>
                 ))
               ) : (
@@ -124,9 +124,9 @@ const MemberDashboard = () => {
           <h3 className="text-xl font-semibold mb-4">Rekomendasi Buku</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {recommendations.length > 0 ? (
-              recommendations.map((book) => (
+              recommendations.map((book, index) => (
                 <div
-                  key={book.id}
+                  key={`recommendation-${index}`}
                   className="bg-white rounded shadow overflow-hidden hover:shadow-md transition-shadow"
                 >
                   {book.cover_image ? (
@@ -145,9 +145,6 @@ const MemberDashboard = () => {
                       {book.title}
                     </h4>
                     <p className="text-sm text-gray-500">{book.author}</p>
-                    <button className="mt-2 text-primary text-sm hover:underline">
-                      Lihat Detail
-                    </button>
                   </div>
                 </div>
               ))

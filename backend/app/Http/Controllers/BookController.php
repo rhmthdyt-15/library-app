@@ -136,6 +136,7 @@ class BookController extends Controller
 
         return response()->json($books->map(function($book) {
         return [
+            'id' => $book->id,
             'title' => $book->title,
             'author' => $book->author,
             'cover_image' => $book->cover_image,

@@ -105,7 +105,7 @@ export const useBorrowing = () => {
     try {
       setLoading(true);
       const response = await extendBorrowingService(token, borrowingId, data);
-      toast.success(response.message);
+      toast.success("Perpanjang Suksess!");
       return response;
     } catch (err: any) {
       const message = err.message || "Failed to extend borrowing";

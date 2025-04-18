@@ -9,6 +9,7 @@ use App\Models\Borrowings;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class BorrowingController extends Controller
 {
@@ -152,6 +153,7 @@ class BorrowingController extends Controller
             'new_due_date' => 'required|date|after:' . $borrowings->due_date,
         ]);
 
+
         // Check if the user owns this borrowings
         if (auth()->user()->role === 'member' && $borrowings->user_id !== auth()->id()) {
             return response()->json([
@@ -170,6 +172,13 @@ class BorrowingController extends Controller
             'due_date' => $request->new_due_date,
             'notes' => $borrowings->notes . "\nExtended on " . now()->toDateString(),
         ]);
+
+        Log::info('Borrowing Extend Check', [
+            'auth_id' => auth()->id(),
+            'borrowings_user_id' => $borrowings->user_id,
+            'role' => auth()->user()->role,
+        ]);
+
 
         return response()->json([
             'message' => 'Borrowings period extended successfully',
@@ -333,6 +342,7 @@ class BorrowingController extends Controller
 
         return response()->json($borrowings->map(function($b) {
             return [
+                'id' => $b->book->id,
                 'title' => $b->book->title,
                 'borrowed_at' => optional($b->borrow_date)->toDateString(),
                 'due_date' => optional($b->due_date)->toDateString(),

@@ -76,7 +76,7 @@ export const extendBorrowingService = (
   borrowingId: number,
   payload: BorrowingExtendRequest
 ): Promise<BorrowingResponse> =>
-  httpClient.postHttpRequest<BorrowingResponse>(
+  httpClient.putHttpRequest<BorrowingResponse>(
     `/api/borrowings/${borrowingId}/extend`,
     payload,
     {

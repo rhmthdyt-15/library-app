@@ -23,6 +23,7 @@ import CategoryPage from "./pages/category";
 import { UserPage } from "./pages/admin/user";
 import { BorrowingPage } from "./pages/admin/borrowings";
 import CatalogBookPage from "./pages/member/book";
+import BorrowingMemberPage from "./pages/member/borrowings";
 
 // Protected Route Component
 const ProtectedRoute = ({
@@ -157,6 +158,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["member"]}>
               <CatalogBookPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/member/borrowed"
+          element={
+            <ProtectedRoute allowedRoles={["member"]}>
+              <BorrowingMemberPage />
             </ProtectedRoute>
           }
         />
